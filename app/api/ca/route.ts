@@ -4,7 +4,7 @@ import path from "path";
 
 export const dynamic = "force-dynamic";
 
-const FALLBACK_CA = "FUKU7x8Kz9pP2vX6mQ4wE1yR3tL8jH5nB4sD6uC9pump";
+const FALLBACK_CA = "MvmoYvZcekJT5v5rUAUK7dNngi2YDQzKRHRpT1Upump";
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || "fuku2026";
 
 // In-memory store (active across warm lambda instances)

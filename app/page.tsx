@@ -11,7 +11,7 @@ import Calculator from "./components/Calculator";
 import Footer from "./components/Footer";
 import AdminModal from "./components/AdminModal";
 
-const DEFAULT_CA = "FUKU7x8Kz9pP2vX6mQ4wE1yR3tL8jH5nB4sD6uC9pump";
+const DEFAULT_CA = "MvmoYvZcekJT5v5rUAUK7dNngi2YDQzKRHRpT1Upump";
 
 export default function Home() {
   const [ca, setCa] = useState<string>(DEFAULT_CA);
