@@ -10,17 +10,16 @@ import HowToBeckon from "./components/HowToBeckon";
 import Calculator from "./components/Calculator";
 import Footer from "./components/Footer";
 import AdminModal from "./components/AdminModal";
-
-const DEFAULT_CA = "MvmoYvZcekJT5v5rUAUK7dNngi2YDQzKRHRpT1Upump";
+import { subscribeToCA, DEFAULT_CA } from "./lib/caService";
 
 export default function Home() {
   const [ca, setCa] = useState<string>(DEFAULT_CA);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const keyBuffer = useRef<string[]>([]);
 
-  // 1. Sync CA from API on load & poll periodically
+  // 1. Real-Time Firebase WebSocket Sync
   useEffect(() => {
-    // Check localStorage cache first
+    // Read cached CA from localStorage for instant initial paint
     try {
       const cached = localStorage.getItem("fuku_active_ca");
       if (cached && cached.trim().length > 10) {
@@ -30,28 +29,21 @@ export default function Home() {
       // ignore
     }
 
-    const fetchCA = async () => {
+    // Subscribe to live Firebase updates (fires instantly, then pushes on changes)
+    const unsubscribe = subscribeToCA((liveCA) => {
+      setCa(liveCA);
       try {
-        const res = await fetch("/api/ca", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.ca) {
-            setCa(data.ca);
-            try {
-              localStorage.setItem("fuku_active_ca", data.ca);
-            } catch {
-              // ignore
-            }
-          }
-        }
+        localStorage.setItem("fuku_active_ca", liveCA);
       } catch {
-        // Fallback remains active
+        // ignore
+      }
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
       }
     };
-
-    fetchCA();
-    const interval = setInterval(fetchCA, 10000); // 10s auto-sync
-    return () => clearInterval(interval);
   }, []);
 
   // 2. Secret Keystroke Listener for sequence 'j' -> 'k' -> 'l'

@@ -1,60 +1,29 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { getCAFromFirestore, saveCAToFirestore, DEFAULT_CA } from "@/app/lib/caService";
 
 export const dynamic = "force-dynamic";
 
-const FALLBACK_CA = "MvmoYvZcekJT5v5rUAUK7dNngi2YDQzKRHRpT1Upump";
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || "fuku2026";
-
-// In-memory store (active across warm lambda instances)
-let inMemoryCA = FALLBACK_CA;
-
-// Helper to get persistent file path in /tmp (writable in Vercel serverless)
-const getStoragePath = () => {
-  try {
-    const tmpDir = "/tmp";
-    if (fs.existsSync(tmpDir)) {
-      return path.join(tmpDir, "fuku_ca.txt");
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-};
-
-function readCA(): string {
-  const filePath = getStoragePath();
-  if (filePath && fs.existsSync(filePath)) {
-    try {
-      const data = fs.readFileSync(filePath, "utf8").trim();
-      if (data) return data;
-    } catch {
-      // fallback
-    }
-  }
-  return inMemoryCA;
-}
-
-function writeCA(newCA: string) {
-  inMemoryCA = newCA;
-  const filePath = getStoragePath();
-  if (filePath) {
-    try {
-      fs.writeFileSync(filePath, newCA, "utf8");
-    } catch {
-      // ignore tmp write errors
-    }
-  }
-}
+let inMemoryCA = DEFAULT_CA;
 
 export async function GET() {
-  const ca = readCA();
-  return NextResponse.json({
-    success: true,
-    ca,
-    updatedAt: new Date().toISOString(),
-  });
+  try {
+    const ca = await getCAFromFirestore();
+    inMemoryCA = ca;
+    return NextResponse.json({
+      success: true,
+      ca,
+      source: "firestore",
+      updatedAt: new Date().toISOString(),
+    });
+  } catch {
+    return NextResponse.json({
+      success: true,
+      ca: inMemoryCA,
+      source: "memory_fallback",
+      updatedAt: new Date().toISOString(),
+    });
+  }
 }
 
 export async function POST(req: Request) {
@@ -77,17 +46,21 @@ export async function POST(req: Request) {
     }
 
     const cleanedCA = ca.trim();
-    writeCA(cleanedCA);
+    inMemoryCA = cleanedCA;
+
+    // Permanently write to Google Firebase Firestore!
+    await saveCAToFirestore(cleanedCA);
 
     return NextResponse.json({
       success: true,
       ca: cleanedCA,
-      message: "Fuku Shrine Contract Address updated successfully across the realm!",
+      message: "Fuku Shrine Contract Address permanently stored in Firestore!",
       timestamp: new Date().toISOString(),
     });
-  } catch {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Malformed request";
     return NextResponse.json(
-      { success: false, error: "Malformed request payload" },
+      { success: false, error: message },
       { status: 400 }
     );
   }
