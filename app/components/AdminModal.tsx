@@ -119,13 +119,10 @@ export default function AdminModal({
               type="password"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
-              placeholder="Enter passcode (default: fuku2026)"
+              placeholder="Enter passcode"
               className="w-full border-3 border-black p-3 font-mono text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#FFD166] shadow-[3px_3px_0px_#000]"
               required
             />
-            <p className="text-[11px] text-gray-500 font-mono mt-1">
-              Default password: <code className="bg-yellow-100 px-1 py-0.5 border border-black font-bold">fuku2026</code>
-            </p>
           </div>
 
           <div>
@@ -136,7 +133,7 @@ export default function AdminModal({
               type="text"
               value={newCA}
               onChange={(e) => setNewCA(e.target.value)}
-              placeholder="e.g. FUKU7x8Kz9pP2vX6mQ4wE1yR3tL8jH5nB4sD6uC9pump"
+              placeholder="e.g. MvmoYvZcekJT5v5rUAUK7dNngi2YDQzKRHRpT1Upump"
               className="w-full border-3 border-black p-3 font-mono text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#06D6A0] shadow-[3px_3px_0px_#000]"
               required
             />
@@ -171,12 +168,6 @@ export default function AdminModal({
             </button>
           </div>
         </form>
-
-        <p className="text-center text-[10px] font-mono text-gray-500 mt-4">
-          Secret Trigger: Press <kbd className="bg-gray-200 border px-1">J</kbd> +{" "}
-          <kbd className="bg-gray-200 border px-1">K</kbd> +{" "}
-          <kbd className="bg-gray-200 border px-1">L</kbd> on any page.
-        </p>
       </div>
     </div>
   );

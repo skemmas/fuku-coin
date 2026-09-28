@@ -114,7 +114,7 @@ export default function Home() {
       <Calculator />
 
       {/* Footer */}
-      <Footer currentCA={ca} onOpenAdmin={() => setIsAdminOpen(true)} />
+      <Footer currentCA={ca} />
 
       {/* Secret Admin CA Master Panel Modal */}
       <AdminModal

@@ -1,14 +1,12 @@
 "use client";
 
-import React from "react";
-import { ExternalLink, Heart, KeyRound } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 interface FooterProps {
   currentCA: string;
-  onOpenAdmin: () => void;
 }
 
-export default function Footer({ currentCA, onOpenAdmin }: FooterProps) {
+export default function Footer({ currentCA }: FooterProps) {
   const pumpFunUrl = `https://pump.fun/coin/${currentCA}`;
   const dexScreenerUrl = `https://dexscreener.com/solana/${currentCA}`;
 
@@ -120,19 +118,6 @@ export default function Footer({ currentCA, onOpenAdmin }: FooterProps) {
           </p>
           <div className="flex flex-wrap justify-between items-center gap-4 text-gray-400 pt-4 border-t border-gray-900">
             <div>&copy; 2026 $FUKU — The Fortune Kitten. All paws reserved.</div>
-            
-            {/* Secret Master Panel Access Trigger */}
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-gray-400">Press [J+K+L] or</span>
-              <button
-                onClick={onOpenAdmin}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono hover:text-[#FFD166] hover:border-[#FFD166] transition-colors rounded"
-                title="Shrine Master Admin Panel (Press J then K then L)"
-              >
-                <KeyRound className="w-3 h-3 text-[#FFD166]" />
-                <span>Shrine Portal</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
