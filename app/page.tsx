@@ -1,69 +1,136 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import HeroSection from "./components/HeroSection";
+import MarqueeTicker from "./components/MarqueeTicker";
+import DailyOmikuji from "./components/DailyOmikuji";
+import TheLore from "./components/TheLore";
+import Tokenomics from "./components/Tokenomics";
+import HowToBeckon from "./components/HowToBeckon";
+import Calculator from "./components/Calculator";
+import Footer from "./components/Footer";
+import AdminModal from "./components/AdminModal";
+
+const DEFAULT_CA = "FUKU7x8Kz9pP2vX6mQ4wE1yR3tL8jH5nB4sD6uC9pump";
 
 export default function Home() {
+  const [ca, setCa] = useState<string>(DEFAULT_CA);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const keyBuffer = useRef<string[]>([]);
+
+  // 1. Sync CA from API on load & poll periodically
+  useEffect(() => {
+    // Check localStorage cache first
+    try {
+      const cached = localStorage.getItem("fuku_active_ca");
+      if (cached && cached.trim().length > 10) {
+        setCa(cached.trim());
+      }
+    } catch {
+      // ignore
+    }
+
+    const fetchCA = async () => {
+      try {
+        const res = await fetch("/api/ca", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.ca) {
+            setCa(data.ca);
+            try {
+              localStorage.setItem("fuku_active_ca", data.ca);
+            } catch {
+              // ignore
+            }
+          }
+        }
+      } catch {
+        // Fallback remains active
+      }
+    };
+
+    fetchCA();
+    const interval = setInterval(fetchCA, 10000); // 10s auto-sync
+    return () => clearInterval(interval);
+  }, []);
+
+  // 2. Secret Keystroke Listener for sequence 'j' -> 'k' -> 'l'
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore keystrokes when typing inside inputs/textareas
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      keyBuffer.current.push(key);
+      if (keyBuffer.current.length > 5) {
+        keyBuffer.current.shift();
+      }
+
+      // Check if the last 3 keys pressed are 'j', 'k', 'l'
+      const len = keyBuffer.current.length;
+      if (
+        len >= 3 &&
+        keyBuffer.current[len - 3] === "j" &&
+        keyBuffer.current[len - 2] === "k" &&
+        keyBuffer.current[len - 1] === "l"
+      ) {
+        setIsAdminOpen(true);
+        keyBuffer.current = [];
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const handleCAUpdated = (newCA: string) => {
+    setCa(newCA);
+    try {
+      localStorage.setItem("fuku_active_ca", newCA);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen flex flex-col bg-[#FFFDF0]">
+      {/* Top Banner Ribbon */}
+      <MarqueeTicker variant="secondary" />
+
+      {/* Hero Section */}
+      <HeroSection currentCA={ca} />
+
+      {/* Mid-section Ribbon */}
+      <MarqueeTicker variant="primary" />
+
+      {/* Daily Degen Omikuji (Fortune Slip Drawer) */}
+      <DailyOmikuji />
+
+      {/* The Lore of The High Paw */}
+      <TheLore />
+
+      {/* Zero BS Tokenomics */}
+      <Tokenomics />
+
+      {/* How to Beckon Guide */}
+      <HowToBeckon currentCA={ca} />
+
+      {/* Fortune Multiplier Calculator */}
+      <Calculator />
+
+      {/* Footer */}
+      <Footer currentCA={ca} onOpenAdmin={() => setIsAdminOpen(true)} />
+
+      {/* Secret Admin CA Master Panel Modal */}
+      <AdminModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        currentCA={ca}
+        onCAUpdated={handleCAUpdated}
+      />
+    </main>
   );
 }
