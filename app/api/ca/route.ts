@@ -48,13 +48,22 @@ export async function POST(req: Request) {
     const cleanedCA = ca.trim();
     inMemoryCA = cleanedCA;
 
-    // Permanently write to Google Firebase Firestore!
-    await saveCAToFirestore(cleanedCA);
+    // Permanently write to Google Firebase Firestore (with fallback)
+    let firestoreSaved = false;
+    try {
+      await saveCAToFirestore(cleanedCA);
+      firestoreSaved = true;
+    } catch (dbErr) {
+      console.warn("Firestore write blocked (check Firestore Rules in console):", dbErr);
+    }
 
     return NextResponse.json({
       success: true,
       ca: cleanedCA,
-      message: "Fuku Shrine Contract Address permanently stored in Firestore!",
+      storage: firestoreSaved ? "firestore" : "memory_fallback",
+      message: firestoreSaved
+        ? "Fuku Shrine Contract Address permanently stored in Firestore!"
+        : "Contract Address updated in active memory! (To make permanent, set Firestore rules to allow read, write)",
       timestamp: new Date().toISOString(),
     });
   } catch (err: unknown) {
